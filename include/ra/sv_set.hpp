@@ -412,7 +412,7 @@ namespace ra::container {
 
                 // return std::make_pair(it, true);
 
-                //----------
+                //------------------------------------------------------
                 if(size_ == capacity_) {
                     key_type* new_arr = static_cast<key_type*>(::operator new(capacity_ * 2 * sizeof(key_type)));
 
