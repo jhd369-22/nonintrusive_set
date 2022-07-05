@@ -91,9 +91,7 @@ namespace ra::container {
                 arr_ = static_cast<key_type*>(::operator new(n * sizeof(key_type)));
 
                 try {
-                    for (std::size_t i = 0; i < n; ++i) {
-                        std::uninitialized_copy_n(first, n, arr_);
-                    }
+                    std::uninitialized_copy_n(first, n, arr_);
                 } catch (...) {
                     ::operator delete(arr_);
                     throw;
@@ -112,7 +110,7 @@ namespace ra::container {
             //
             // Time complexity:
             // Constant.
-            sv_set(sv_set&& other) noexcept(std::is_nothrow_move_constructible_v<key_compare>){
+            sv_set(sv_set&& other) noexcept(std::is_nothrow_move_constructible_v<key_compare>) {
                 arr_ = other.begin();
                 size_ = other.size();
                 capacity_ = other.capacity();
@@ -165,13 +163,13 @@ namespace ra::container {
                     arr_ = static_cast<key_type*>(::operator new(other.size() * sizeof(key_type)));
 
                     try {
-                        std::uninitialized_copy_n(other.begin(), other.size(_), arr_);
+                        std::uninitialized_copy_n(other.begin(), other.size(), arr_);
                     } catch (...) {
                         ::operator delete(arr_);
                         throw;
                     }
 
-                    size_ = other.size(_);
+                    size_ = other.size();
                     capacity_ = other.capacity();
                     comp_ = other.key_comp();
                 }
@@ -241,11 +239,11 @@ namespace ra::container {
             //
             // Time complexity:
             // Constant.
-            const_iterator begin() const noexcept{
+            const_iterator begin() const noexcept {
                 return arr_;
             }
 
-            iterator begin() noexcept{
+            iterator begin() noexcept {
                 return arr_;
             }
 
@@ -258,11 +256,11 @@ namespace ra::container {
             //
             // Time complexity:
             // Constant.
-            const_iterator end() const noexcept{
+            const_iterator end() const noexcept {
                 return arr_ + size_;
             }
 
-            iterator end() noexcept{
+            iterator end() noexcept {
                 return arr_ + size_;
             }
 
@@ -274,7 +272,7 @@ namespace ra::container {
             //
             // Time complexity:
             // Constant.
-            size_type size() const noexcept{
+            size_type size() const noexcept {
                 return size_;
             }
 
@@ -287,7 +285,7 @@ namespace ra::container {
             //
             // Time complexity:
             // Constant.
-            size_type capacity() const noexcept{
+            size_type capacity() const noexcept {
                 return capacity_;
             }
 
@@ -313,6 +311,8 @@ namespace ra::container {
                 if (n > capacity_) {
                     key_type* new_arr = static_cast<key_type*>(::operator new(n * sizeof(key_type)));
 
+                    size_type old_size = size_;
+
                     try {
                         std::uninitialized_copy_n(arr_, size_, new_arr);
                     } catch (...) {
@@ -325,6 +325,7 @@ namespace ra::container {
 
                     arr_ = new_arr;
                     capacity_ = n;
+                    size_ = old_size;
                 }
             }
 
@@ -346,7 +347,10 @@ namespace ra::container {
             void shrink_to_fit() {
                 if (capacity_ > size_) {
                     key_type* new_arr = static_cast<key_type*>(::operator new(size_ * sizeof(key_type)));
-                    try{
+
+                    size_type old_size = size_;
+
+                    try {
                         std::uninitialized_copy_n(arr_, size_, new_arr);
                     } catch (...) {
                         ::operator delete(new_arr);
@@ -357,7 +361,8 @@ namespace ra::container {
                     ::operator delete(arr_);
 
                     arr_ = new_arr;
-                    capacity_ = size_;
+                    capacity_ = old_size;
+                    size_ = old_size;
                 }
             }
 
@@ -390,78 +395,67 @@ namespace ra::container {
             // number of elements with larger keys than x (if size() < capacity())
             // or size() (if size() == capacity()).
             std::pair<iterator, bool> insert(const key_type& x) {
-                // if (size_ == capacity_) {
-                //     reserve(capacity_ * 2);
-                // }
+                if (size_ == capacity_) {
+                    iterator it = std::lower_bound(arr_, arr_ + size_, x, comp_);
 
-                // iterator it = arr_;
-                // for (; it != end(); ++it) {
-                //     if(x == *it) {
-                //         return std::make_pair(it, false);
-                //     }
+                    if (it == end() || comp_(x, *it)) {
+                        key_type* new_arr = static_cast<key_type*>(::operator new(capacity_ * 2 * sizeof(key_type)));
 
-                //     if (comp_(x, *it)) {
-                //         std::uninitialized_move_n(it, end() - it, it + 1);
-                //         *it = x;
-                //         ++size_;
-                //         return std::make_pair(it, true);
-                //     }
-                // }
-
-                // std::uninitialized_fill_n(it, 1, x);
-
-                // return std::make_pair(it, true);
-
-                //------------------------------------------------------
-                if(size_ == capacity_) {
-                    key_type* new_arr = static_cast<key_type*>(::operator new(capacity_ * 2 * sizeof(key_type)));
-
-                    iterator it = arr_;
-                    for (; it != end(); ++it) {
-                        if (x == *it) {
-                            return std::make_pair(it, false);
+                        try {
+                            std::uninitialized_move_n(arr_, it - arr_, new_arr);
+                            std::uninitialized_fill_n(new_arr + (it - arr_), 1, x);
+                            std::uninitialized_move_n(it, end() - it, new_arr + (it - arr_) + 1);
+                        } catch (...) {
+                            ::operator delete(new_arr);
+                            throw;
                         }
 
-                        if (comp_(x, *it)) {
-                            try{
-                                std::uninitialized_move_n(arr_, end() - it - 1, new_arr);
-                                std::uninitialized_fill_n(new_arr + (it - arr_), 1, x);
-                                std::uninitialized_move_n(it, end() - it, new_arr + (it - arr_) + 1);
-                            } catch (...) {
-                                ::operator delete(new_arr);
-                                throw;
-                            }
+                        it = new_arr + (it - arr_);
 
-                            it = new_arr + (it - arr_);
-                            ::operator delete(arr_);
+                        ::operator delete(arr_);
 
-                            arr_ = new_arr;
-                            ++size_;
-                            capacity_ *= 2;
+                        arr_ = new_arr;
+                        ++size_;
+                        capacity_ *= 2;
 
-                            return std::make_pair(it, true);
-                        }
+                        return std::make_pair(it, true);
+                    } else {
+                        return std::make_pair(it, false);
                     }
-                } else {
-                    iterator it = arr_;
-                    for (; it != end(); ++it) {
-                        if (x == *it) {
-                            return std::make_pair(it, false);
-                        }
 
-                        if (comp_(x, *it)) {
-                            for (iterator it2 = end(); it2 != it - 1; --it2) {
-                                std::uninitialized_move_n(it2 - 1, 1, it2);
-                            }
-                            std::uninitialized_fill_n(it, 1, x);
-                            
-                            ++size_;
-                            
-                            return std::make_pair(it, true);
+                } else {
+                    // iterator it = arr_;
+                    // for (; it != end(); ++it) {
+                    //     if (x == *it) {
+                    //         return std::make_pair(it, false);
+                    //     }
+
+                    //     if (comp_(x, *it)) {
+                    //         for (iterator it2 = end(); it2 != it - 1; --it2) {
+                    //             std::uninitialized_move_n(it2 - 1, 1, it2);
+                    //         }
+                    //     }
+                    // }
+
+                    // std::uninitialized_fill_n(it, 1, x);
+                    // ++size_;
+
+                    // return std::make_pair(it, true);
+
+                    iterator it = std::lower_bound(arr_, arr_ + size_, x, comp_);
+
+                    if (it == end() || comp_(x, *it)) {
+                        for (iterator it2 = end(); it2 != it - 1; --it2) {
+                            std::uninitialized_move_n(it2 - 1, 1, it2);
                         }
+                        std::uninitialized_fill_n(it, 1, x);
+                        ++size_;
+
+                        return std::make_pair(it, true);
+                    } else {
+                        return std::make_pair(it, false);
                     }
                 }
-
             }
 
             // Remove an element from a set.
@@ -480,11 +474,12 @@ namespace ra::container {
             // Linear in number of elements with larger keys than x.
             iterator erase(const_iterator pos) {
                 size_type i = pos - arr_;
-                std::destroy_at(pos);
-                if (i != size_ - 1) {
-                    std::uninitialized_move_n(pos + 1, size_ - i, pos);
+
+                if (i < size_) {
+                    std::destroy_at(pos);
+                    std::uninitialized_move_n(arr_ + i + 1, size_ - i - 1, arr_ + i);
+                    --size_;
                 }
-                --size_;
 
                 return arr_ + i;
             }

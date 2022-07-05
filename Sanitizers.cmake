@@ -2,7 +2,9 @@
 # the Undefined Behavior Sanitizer(UBSan).
 # Note: To enable the option in CLI,
 # use "-D ENABLE_ASAN=true -D ENABLE_UBSAN=true" when generate the native build files
-# e.g. "cmake -S . -B tmp -D ENABLE_ASAN=true -D ENABLE_UBSAN=true -D ENABLE_MEMORY=true -D ENABLE_THREAD=true"
+# e.g. "cmake -S . -B tmp -D ENABLE_ASAN=true -D ENABLE_UBSAN=true"
+# Attention: '-fsanitize=thread' is incompatible with '-fsanitize=address',
+# and '-fsanitize=memory' may only support Clang, not GCC.
 option(ENABLE_ASAN false)
 option(ENABLE_UBSAN false)
 option(ENABLE_MEMORY false)

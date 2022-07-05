@@ -13,22 +13,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # find catch2
 find_package(Catch2 REQUIRED)
 
-
 # include the file containing the sanitizer option
 include(Sanitizers.cmake)
 
 # include directory
 include_directories(include)
-
-# Note that, as of the time of this writing, neither
-# GCC nor Clang support the “STDC FENV_ACCESS ON” pragma.
-# In the case of GCC, a workaround for this problem is
-# to add the “-frounding-math” flag to the compiler when
-# compiling any code that explicitly changes rounding modes
-# (e.g., any code that uses interval arithmetic).
-# This should be done by adding the preceding flag to
-# the `CMAKE_CXX_FLAGS` variable.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frounding-math")
 
 # add executable
 add_executable(test_sv_set app/test_sv_set.cpp)
