@@ -314,13 +314,12 @@ namespace ra::container {
                     size_type old_size = size_;
 
                     try {
-                        std::uninitialized_copy_n(arr_, size_, new_arr);
+                        std::uninitialized_move_n(arr_, size_, new_arr);
                     } catch (...) {
                         ::operator delete(new_arr);
                         throw;
                     }
 
-                    clear();
                     ::operator delete(arr_);
 
                     arr_ = new_arr;
@@ -351,13 +350,12 @@ namespace ra::container {
                     size_type old_size = size_;
 
                     try {
-                        std::uninitialized_copy_n(arr_, size_, new_arr);
+                        std::uninitialized_move_n(arr_, size_, new_arr);
                     } catch (...) {
                         ::operator delete(new_arr);
                         throw;
                     }
 
-                    clear();
                     ::operator delete(arr_);
 
                     arr_ = new_arr;
@@ -424,30 +422,10 @@ namespace ra::container {
                     }
 
                 } else {
-                    // iterator it = arr_;
-                    // for (; it != end(); ++it) {
-                    //     if (x == *it) {
-                    //         return std::make_pair(it, false);
-                    //     }
-
-                    //     if (comp_(x, *it)) {
-                    //         for (iterator it2 = end(); it2 != it - 1; --it2) {
-                    //             std::uninitialized_move_n(it2 - 1, 1, it2);
-                    //         }
-                    //     }
-                    // }
-
-                    // std::uninitialized_fill_n(it, 1, x);
-                    // ++size_;
-
-                    // return std::make_pair(it, true);
-
                     iterator it = std::lower_bound(arr_, arr_ + size_, x, comp_);
 
                     if (it == end() || comp_(x, *it)) {
-                        for (iterator it2 = end(); it2 != it - 1; --it2) {
-                            std::uninitialized_move_n(it2 - 1, 1, it2);
-                        }
+                        std::uninitialized_move_n(it, end() - it, it + 1);  // support overlapping ranges
                         std::uninitialized_fill_n(it, 1, x);
                         ++size_;
 
