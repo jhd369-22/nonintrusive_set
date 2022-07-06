@@ -512,8 +512,9 @@ namespace ra::container {
                     if (comp_(*(arr_ + tmp), k)) {
                         index = ++tmp;
                         count -= step + 1;
-                    } else
+                    } else {
                         count = step;
+                    }
                 }
 
                 return arr_ + index;

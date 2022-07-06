@@ -502,3 +502,41 @@ TEMPLATE_TEST_CASE("find and clear", "[sv_set]", int, double) {
         CHECK(sv_set.begin() == sv_set.end());
     }
 }
+
+TEMPLATE_TEST_CASE("const set", "[sv_set]", int, double) {
+    using sv_set_t = ra::container::sv_set<TestType>;
+
+    TestType arr[] = {TestType(1), TestType(2), TestType(3), TestType(4), TestType(5)};
+    const sv_set_t sv_set(typename sv_set_t::ordered_and_unique_range(), std::begin(arr), std::end(arr) - std::begin(arr));
+
+    SECTION("Const find with existing key") {
+        CHECK(sv_set.size() == 5);
+        CHECK(sv_set.capacity() == 5);
+        CHECK(sv_set.begin() != sv_set.end());
+        CHECK(sv_set.key_comp()(1, 2) == true);
+        CHECK(*sv_set.begin() == TestType(1));
+        CHECK(*(sv_set.begin() + 1) == TestType(2));
+        CHECK(*(sv_set.begin() + 2) == TestType(3));
+        CHECK(*(sv_set.begin() + 3) == TestType(4));
+        CHECK(*(sv_set.begin() + 4) == TestType(5));
+
+        auto it = sv_set.find(TestType(3));
+        CHECK(it != sv_set.end());
+        CHECK(*it == TestType(3));
+    }
+
+    SECTION("Const find with non-existing key") {
+        CHECK(sv_set.size() == 5);
+        CHECK(sv_set.capacity() == 5);
+        CHECK(sv_set.begin() != sv_set.end());
+        CHECK(sv_set.key_comp()(1, 2) == true);
+        CHECK(*sv_set.begin() == TestType(1));
+        CHECK(*(sv_set.begin() + 1) == TestType(2));
+        CHECK(*(sv_set.begin() + 2) == TestType(3));
+        CHECK(*(sv_set.begin() + 3) == TestType(4));
+        CHECK(*(sv_set.begin() + 4) == TestType(5));
+
+        auto it = sv_set.find(TestType(6));
+        CHECK(it == sv_set.end());
+    }
+}
