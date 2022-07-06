@@ -500,10 +500,15 @@ namespace ra::container {
             // Time complexity:
             // Logarithmic.
             iterator find(const key_type& k) {
+                if (comp_(k, *arr_)) {
+                    return end();
+                }
                 return std::lower_bound(arr_, end(), k, comp_);
             }
             const_iterator find(const key_type& k) const {
                 size_type count = size_, index = 0, tmp = 0, step = 0;
+
+                if(comp_(k, *arr_)) {return end();}
 
                 while (count > 0) {
                     tmp = index;
