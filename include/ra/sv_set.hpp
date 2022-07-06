@@ -397,6 +397,7 @@ namespace ra::container {
                     iterator it = std::lower_bound(arr_, arr_ + size_, x, comp_);
 
                     if (it == end() || comp_(x, *it)) {
+                        if(capacity_ < 1) {capacity_ = 1;}
                         key_type* new_arr = static_cast<key_type*>(::operator new(capacity_ * 2 * sizeof(key_type)));
 
                         try {
@@ -502,7 +503,20 @@ namespace ra::container {
                 return std::lower_bound(arr_, end(), k, comp_);
             }
             const_iterator find(const key_type& k) const {
-                return std::lower_bound(arr_, end(), k, comp_);
+                size_type count = size_, index = 0, tmp = 0, step = 0;
+
+                while (count > 0) {
+                    tmp = index;
+                    step = count / 2;
+                    tmp += step;
+                    if (comp_(*(arr_ + tmp), k)) {
+                        index = ++tmp;
+                        count -= step + 1;
+                    } else
+                        count = step;
+                }
+
+                return arr_ + index;
             }
 
             // Additional Remarks

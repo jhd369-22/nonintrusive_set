@@ -129,6 +129,38 @@ TEMPLATE_TEST_CASE("Insert and erase", "[sv_set]", int, double) {
     TestType arr[] = {TestType(1), TestType(2), TestType(3), TestType(4), TestType(5), TestType(7), TestType(8), TestType(9), TestType(10)};
     sv_set_t sv_set(typename sv_set_t::ordered_and_unique_range(), std::begin(arr), std::end(arr) - std::begin(arr));
 
+    SECTION("Insert to an empty set") {
+        sv_set_t sv_set2;
+        sv_set2.insert(TestType(6));
+
+        CHECK(sv_set2.size() == 1);
+        CHECK(sv_set2.capacity() == 2);
+        CHECK(sv_set2.begin() != sv_set2.end());
+        CHECK(sv_set2.key_comp()(1, 2) == true);
+    }
+
+    SECTION("Insert to the begin, reallocated") {
+        auto result = sv_set.insert(TestType(0));
+
+        CHECK(result.first == sv_set.begin());
+        CHECK(result.second == true);
+
+        CHECK(sv_set.size() == 10);
+        CHECK(sv_set.capacity() == 18);
+        CHECK(sv_set.begin() != sv_set.end());
+        CHECK(sv_set.key_comp()(1, 2) == true);
+        CHECK(*sv_set.begin() == TestType(0));
+        CHECK(*(sv_set.begin() + 1) == TestType(1));
+        CHECK(*(sv_set.begin() + 2) == TestType(2));
+        CHECK(*(sv_set.begin() + 3) == TestType(3));
+        CHECK(*(sv_set.begin() + 4) == TestType(4));
+        CHECK(*(sv_set.begin() + 5) == TestType(5));
+        CHECK(*(sv_set.begin() + 6) == TestType(7));
+        CHECK(*(sv_set.begin() + 7) == TestType(8));
+        CHECK(*(sv_set.begin() + 8) == TestType(9));
+        CHECK(*(sv_set.begin() + 9) == TestType(10));
+    }
+
     SECTION("Insert to the middle, reallocated") {
         auto result = sv_set.insert(TestType(6));
 
@@ -192,6 +224,30 @@ TEMPLATE_TEST_CASE("Insert and erase", "[sv_set]", int, double) {
         CHECK(*(sv_set.begin() + 6) == TestType(8));
         CHECK(*(sv_set.begin() + 7) == TestType(9));
         CHECK(*(sv_set.begin() + 8) == TestType(10));
+    }
+
+    SECTION("Insert to the begin, no reallocated") {
+        sv_set.reserve(20);
+
+        auto result = sv_set.insert(TestType(0));
+
+        CHECK(result.first == sv_set.begin());
+        CHECK(result.second == true);
+
+        CHECK(sv_set.size() == 10);
+        CHECK(sv_set.capacity() == 20);
+        CHECK(sv_set.begin() != sv_set.end());
+        CHECK(sv_set.key_comp()(1, 2) == true);
+        CHECK(*sv_set.begin() == TestType(0));
+        CHECK(*(sv_set.begin() + 1) == TestType(1));
+        CHECK(*(sv_set.begin() + 2) == TestType(2));
+        CHECK(*(sv_set.begin() + 3) == TestType(3));
+        CHECK(*(sv_set.begin() + 4) == TestType(4));
+        CHECK(*(sv_set.begin() + 5) == TestType(5));
+        CHECK(*(sv_set.begin() + 6) == TestType(7));
+        CHECK(*(sv_set.begin() + 7) == TestType(8));
+        CHECK(*(sv_set.begin() + 8) == TestType(9));
+        CHECK(*(sv_set.begin() + 9) == TestType(10));
     }
 
     SECTION("Insert to the middle, no reallocated"){
