@@ -23,5 +23,5 @@ include_directories(include)
 add_executable(test_sv_set app/test_sv_set.cpp)
 target_link_libraries(test_sv_set Catch2::Catch2)
 
-#add_executable(test_intrusive_list app/test_intrusive_list.cpp)
-#target_link_libraries(test_intrusive_list Catch2::Catch2)
+add_executable(test_intrusive_list app/test_intrusive_list.cpp)
+target_link_libraries(test_intrusive_list Catch2::Catch2)
